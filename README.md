@@ -61,14 +61,33 @@ OPENAI_API_KEY=sk-proj-your-key-here
 
 ### 5. Add your lecture transcripts
 
-Place your transcript `.txt` files inside the `data/` folder. Name them after the module:
+Place your transcript `.txt` files inside the `data/` folder. Each file represents **one module** — concatenate all video transcripts for that module into a single `.txt` file.
+
+**Naming convention:** `moduleN_shortname.txt` (lowercase, underscores only)
 
 ```
 data/
-├── week1_intro.txt
-├── week2_neural_networks.txt
-├── week3_statistics.txt
+├── module1_algorithms.txt       # All videos for Module 1 combined
+├── module2_databases.txt        # All videos for Module 2 combined
+└── module3_networks.txt         # All videos for Module 3 combined
 ```
+
+**Inside each file**, separate individual videos with headers:
+
+```
+# Week 1 - Introduction
+[Video: What is ML?]
+transcript content here...
+
+[Video: Types of Learning]
+transcript content here...
+
+# Week 2 - Supervised Learning
+[Video: Linear Regression]
+transcript content here...
+```
+
+> 💡 Large files are fine — the database automatically splits them into small chunks for retrieval. Only the most relevant passages are used when you ask a question.
 
 > If you have `.vtt` subtitle files from YouTube, convert them to `.txt` before adding them.
 
