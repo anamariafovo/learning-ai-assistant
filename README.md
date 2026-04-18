@@ -136,6 +136,60 @@ Your browser will open automatically at `http://localhost:8501`.
 
 ---
 
+## 📝 Generating & Viewing Module Summaries
+
+### Generate summaries
+
+After building the database you can generate structured summaries in two ways:
+
+**From the sidebar (recommended):**
+
+- Click **"Generate All Summaries"** to summarise every loaded module at once
+- Or use the **"Generate for one module"** dropdown to summarise a single module
+
+**From the terminal:**
+
+```bash
+python3 summarise.py
+```
+
+Or for a specific module:
+
+```bash
+python3 summarise.py module1_mobileDev
+```
+
+Summaries are saved as markdown files:
+
+```
+summaries/
+├── module1_mobileDev/
+│   └── summary.md
+└── module2_databases/
+    └── summary.md
+```
+
+Each summary includes:
+
+- 🎯 Overview
+- 🔑 Key Concepts
+- 📖 Detailed Notes
+- ❓ Likely Exam Questions
+- 🔗 Key Terms Glossary
+
+### View summaries in the UI
+
+Once generated, summaries can be read directly in the app:
+
+1. In the sidebar, find **"📖 View Summary"**
+2. Select a module from the dropdown
+3. The summary replaces the chat view in the main area
+4. Click **"Close Summary"** to return to the chat
+
+> 💡 If no summaries appear in the dropdown, generate them first using the buttons above.
+
+---
+
 ## 📁 Project Structure
 
 ```

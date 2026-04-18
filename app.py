@@ -3,6 +3,7 @@ load_dotenv()
 
 import streamlit as st
 from query import ask, collection
+import os
 
 # -------------------------
 # Page Config
@@ -39,7 +40,7 @@ except Exception as e:
 # Sidebar Settings
 # -------------------------
 with st.sidebar:
-    st.header("⚙️ Settings")
+    st.markdown("### ⚙️ Settings")
 
     mode = st.radio(
         "Mode",
@@ -53,42 +54,85 @@ with st.sidebar:
     debug = st.toggle("Show retrieved context", value=False)
 
     st.divider()
-    st.subheader("📝 Summaries")
+    st.markdown("### 📝 Summaries")
+    st.caption("Generate AI summaries from your lecture material")
 
-    if st.button("Generate All Summaries"):
-        from summarise import summarise_all
-        with st.spinner("Generating summaries..."):
-            try:
-                summarise_all()
-                st.success("✅ Summaries saved to /summaries/")
-            except RuntimeError as e:
-                st.error(str(e))
-
-    if modules:
-        selected = st.selectbox("Generate for one module", [""] + modules)
-        if selected and st.button("Generate Selected"):
-            from summarise import summarise_module
-            with st.spinner(f"Summarising {selected}..."):
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Generate All", use_container_width=True):
+            from summarise import summarise_all
+            with st.spinner("Generating..."):
                 try:
-                    summarise_module(selected)
-                    st.success(f"✅ Saved to summaries/{selected}/summary.md")
+                    summarise_all()
+                    st.success("✅ Done")
                 except RuntimeError as e:
                     st.error(str(e))
+
+    if modules:
+        selected = st.selectbox("Module", [""] + modules, label_visibility="collapsed", placeholder="Select a module...")
+        with col2:
+            if selected and st.button("Generate", use_container_width=True):
+                from summarise import summarise_module
+                with st.spinner(f"Summarising..."):
+                    try:
+                        summarise_module(selected)
+                        st.success(f"✅ Saved")
+                    except RuntimeError as e:
+                        st.error(str(e))
+
+    st.divider()
+
+    # -------------------------
+    # View Summaries
+    # -------------------------
+    st.markdown("### 📖 View Summary")
+    SUMMARIES_DIR = "summaries"
+
+    available_summaries = []
+    if os.path.exists(SUMMARIES_DIR):
+        available_summaries = [
+            d for d in os.listdir(SUMMARIES_DIR)
+            if os.path.isfile(os.path.join(SUMMARIES_DIR, d, "summary.md"))
+        ]
+
+    if available_summaries:
+        for summary in sorted(available_summaries):
+            if st.button(f"📄 {summary}", use_container_width=True, key=f"sum_{summary}"):
+                st.session_state["viewing_summary"] = summary
+                st.rerun()
+
+        if st.session_state.get("viewing_summary"):
+            if st.button("✖ Close Summary", use_container_width=True):
+                st.session_state["viewing_summary"] = None
+                st.rerun()
+    else:
+        st.caption("No summaries generated yet.")
 
     st.divider()
 
     # Show available modules
-    st.subheader("📂 Loaded Modules")
+    st.markdown("### 📂 Loaded Modules")
     if modules:
-        for mod in modules:
-            st.markdown(f"- `{mod}`")
+        st.caption("\n".join([f"• `{mod}`" for mod in modules]))
     else:
-        st.info("No modules loaded yet.")
+        st.caption("No modules loaded yet.")
 
     st.divider()
-    st.markdown("**Mode Guide**")
-    st.markdown("🔒 **Strict** — safe for exam prep")
-    st.markdown("💡 **Explain** — better for understanding")
+    st.caption("**Strict** — safe for exam prep · **Explain** — better for understanding")
+
+# -------------------------
+# Main Area — Summary Viewer or Chat
+# -------------------------
+if st.session_state.get("viewing_summary"):
+    mod = st.session_state["viewing_summary"]
+    summary_path = os.path.join("summaries", mod, "summary.md")
+    st.subheader(f"📖 Summary: `{mod}`")
+    if os.path.exists(summary_path):
+        with open(summary_path, "r", encoding="utf-8") as f:
+            st.markdown(f.read())
+    else:
+        st.warning("Summary file not found.")
+    st.stop()
 
 # -------------------------
 # Chat History
