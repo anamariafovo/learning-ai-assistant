@@ -11,6 +11,7 @@ A local AI-powered study assistant that lets you upload your university lecture 
 - 💡 **Explain mode** — adds external knowledge for deeper understanding
 - 📂 Supports multiple modules/lectures simultaneously
 - 🐛 Debug mode to inspect retrieved lecture chunks
+- 📝 AI-generated structured summaries per module
 
 ---
 
@@ -140,24 +141,30 @@ Your browser will open automatically at `http://localhost:8501`.
 
 ### Generate summaries
 
-After building the database you can generate structured summaries in two ways:
+After building the database you can generate a summary for a specific module in two ways:
 
 **From the sidebar (recommended):**
 
-- Click **"Generate All Summaries"** to summarise every loaded module at once
-- Or use the **"Generate for one module"** dropdown to summarise a single module
+1. Select a module from the **"Select module"** dropdown
+2. Click **"🔄 Generate Summary"**
 
 **From the terminal:**
 
 ```bash
-python3 summarise.py
+# Summarise a specific module
+python3 summarise.py module1_mobileDev --append
 ```
 
-Or for a specific module:
+### Updating summaries with new content
+
+If you add new content to an existing `.txt` file, always rebuild the database first, then regenerate the summary:
 
 ```bash
-python3 summarise.py module1_mobileDev
+python3 build_db.py
+python3 summarise.py module1_mobileDev --append
 ```
+
+> 💡 Summaries use **append mode** by default — the model merges new content into the existing summary without rewriting what's already there, saving API costs.
 
 Summaries are saved as markdown files:
 
@@ -182,11 +189,11 @@ Each summary includes:
 Once generated, summaries can be read directly in the app:
 
 1. In the sidebar, find **"📖 View Summary"**
-2. Select a module from the dropdown
+2. Click the module button to open its summary
 3. The summary replaces the chat view in the main area
-4. Click **"Close Summary"** to return to the chat
+4. Click **"✖ Close Summary"** to return to the chat
 
-> 💡 If no summaries appear in the dropdown, generate them first using the buttons above.
+> 💡 If no summaries appear, generate them first using the sidebar.
 
 ---
 
@@ -196,9 +203,11 @@ Once generated, summaries can be read directly in the app:
 learning-ai-assistant/
 ├── data/            # Your lecture transcript .txt files
 ├── chroma_db/       # Auto-generated vector database (do not edit)
+├── summaries/       # Auto-generated module summaries (markdown)
 ├── app.py           # Streamlit web interface
 ├── query.py         # Core RAG logic (retrieval + OpenAI)
 ├── build_db.py      # Transcript ingestion and embedding
+├── summarise.py     # Summary generation script
 ├── requirements.txt
 ├── .env             # Your API key (never commit this)
 └── README.md
@@ -208,11 +217,12 @@ learning-ai-assistant/
 
 ## 💰 Cost Estimate
 
-| Operation                     | Approx Cost      |
-| ----------------------------- | ---------------- |
-| Building DB (per transcript)  | ~$0.00002        |
-| One question (strict/explain) | ~$0.001–0.005    |
-| **$5 credit**                 | ~1000+ questions |
+| Operation                       | Approx Cost      |
+| ------------------------------- | ---------------- |
+| Building DB (per transcript)    | ~$0.00002        |
+| One question (strict/explain)   | ~$0.001–0.005    |
+| Summary generation (per module) | ~$0.01–0.03      |
+| **$5 credit**                   | ~1000+ questions |
 
 > 💡 Set a [monthly spend cap](https://platform.openai.com/settings/organization/limits) on your OpenAI account to avoid unexpected charges.
 
@@ -223,35 +233,3 @@ learning-ai-assistant/
 - Always keep your API key in `.env` — never hardcode it
 - Set a hard spend limit on your OpenAI account
 - If your key is compromised, delete it immediately at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-
-## 📝 Generating Module Summaries
-
-After building the database, generate structured summaries for all modules:
-
-```bash
-python3 summarise.py
-```
-
-Or for a specific module:
-
-```bash
-python3 summarise.py week1_ml
-```
-
-Summaries are saved as markdown files:
-
-```
-summaries/
-├── week1_ml/
-│   └── summary.md
-└── week2_neural_networks/
-    └── summary.md
-```
-
-Each summary includes:
-
-- 🎯 Overview
-- 🔑 Key Concepts
-- 📖 Detailed Notes
-- ❓ Likely Exam Questions
-- 🔗 Key Terms Glossary

@@ -1,9 +1,11 @@
+import os
+import streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
-
-import streamlit as st
 from query import ask, collection
-import os
+from summarise import summarise_module, sanitise_module_name
+
+SUMMARIES_DIR = "summaries"
 
 # -------------------------
 # Page Config
@@ -32,14 +34,31 @@ if collection is None:
 try:
     all_metas = collection.get(include=["metadatas"])["metadatas"]
     modules = sorted(set(m["module"] for m in all_metas))
-except Exception as e:
+except Exception:
     modules = []
-    st.warning(f"⚠️ Could not load modules: {e}")
+    st.warning("⚠️ Could not load modules. Check the database.")
+
+# -------------------------
+# Session State
+# -------------------------
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+if "viewing_summary" not in st.session_state:
+    st.session_state["viewing_summary"] = None
 
 # -------------------------
 # Sidebar Settings
 # -------------------------
 with st.sidebar:
+    st.markdown("""
+        <style>
+            [data-testid="stSidebarHeader"] {
+                margin-bottom: 0px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     st.markdown("### ⚙️ Settings")
 
     mode = st.radio(
@@ -53,41 +72,9 @@ with st.sidebar:
 
     debug = st.toggle("Show retrieved context", value=False)
 
-    st.divider()
-    st.markdown("### 📝 Summaries")
-    st.caption("Generate AI summaries from your lecture material")
+    st.markdown("<hr style='margin: 4px 0'>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Generate All", use_container_width=True):
-            from summarise import summarise_all
-            with st.spinner("Generating..."):
-                try:
-                    summarise_all()
-                    st.success("✅ Done")
-                except RuntimeError as e:
-                    st.error(str(e))
-
-    if modules:
-        selected = st.selectbox("Module", [""] + modules, label_visibility="collapsed", placeholder="Select a module...")
-        with col2:
-            if selected and st.button("Generate", use_container_width=True):
-                from summarise import summarise_module
-                with st.spinner(f"Summarising..."):
-                    try:
-                        summarise_module(selected)
-                        st.success(f"✅ Saved")
-                    except RuntimeError as e:
-                        st.error(str(e))
-
-    st.divider()
-
-    # -------------------------
-    # View Summaries
-    # -------------------------
     st.markdown("### 📖 View Summary")
-    SUMMARIES_DIR = "summaries"
-
     available_summaries = []
     if os.path.exists(SUMMARIES_DIR):
         available_summaries = [
@@ -108,16 +95,30 @@ with st.sidebar:
     else:
         st.caption("No summaries generated yet.")
 
-    st.divider()
+    st.markdown("<hr style='margin: 4px 0'>", unsafe_allow_html=True)
+    st.markdown("### 📝 Generate Summary")
+    st.caption("Appends new content to existing summary.")
 
-    # Show available modules
+    if modules:
+        selected_module = st.selectbox("Select module", modules, key="summarise_module_select")
+
+        if st.button("🔄 Generate Summary", use_container_width=True, help="Append new content to existing summary"):
+            with st.spinner(f"Generating {selected_module}..."):
+                try:
+                    summarise_module(selected_module, append=True)
+                    st.success("✅ Done!")
+                except Exception:
+                    st.error(f"❌ Failed to generate summary. Please try again.")
+
+    st.markdown("<hr style='margin: 4px 0'>", unsafe_allow_html=True)
+
     st.markdown("### 📂 Loaded Modules")
     if modules:
         st.caption("\n".join([f"• `{mod}`" for mod in modules]))
     else:
         st.caption("No modules loaded yet.")
 
-    st.divider()
+    st.markdown("<hr style='margin: 4px 0'>", unsafe_allow_html=True)
     st.caption("**Strict** — safe for exam prep · **Explain** — better for understanding")
 
 # -------------------------
@@ -125,7 +126,8 @@ with st.sidebar:
 # -------------------------
 if st.session_state.get("viewing_summary"):
     mod = st.session_state["viewing_summary"]
-    summary_path = os.path.join("summaries", mod, "summary.md")
+    safe_mod = sanitise_module_name(mod)   # add this
+    summary_path = os.path.join(SUMMARIES_DIR, safe_mod, "summary.md")
     st.subheader(f"📖 Summary: `{mod}`")
     if os.path.exists(summary_path):
         with open(summary_path, "r", encoding="utf-8") as f:
@@ -137,9 +139,6 @@ if st.session_state.get("viewing_summary"):
 # -------------------------
 # Chat History
 # -------------------------
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
 # Render previous messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -158,15 +157,13 @@ if prompt := st.chat_input("Ask about your lectures..."):
     # Get answer
     with st.chat_message("assistant"):
         with st.spinner("Searching lecture material..."):
-            try:
-                answer = ask(prompt, mode=mode, debug=debug)
-                st.markdown(answer)
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": answer
-                })
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
+            answer, context = ask(prompt, mode=mode, debug=debug)
+            st.markdown(answer)
+            if debug and context:
+                with st.expander("🔍 Retrieved Context (preview)"):
+                    st.code(context[:500], language="text")
+
+    st.session_state.messages.append({"role": "assistant", "content": answer})
 
 # -------------------------
 # Clear Chat Button
