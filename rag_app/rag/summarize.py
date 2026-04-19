@@ -43,7 +43,8 @@ Your ONLY task is to summarise the lecture material.
 Use ONLY the provided transcript content.
 Do not add outside knowledge.
 Write the entire summary in {language}, including all section headings and glossary content.
-
+Format all mathematical expressions using KaTeX notation: use $...$ for inline math and $$...$$ on its own line for block/display equations. Do not use [ ] or \\[ \\] delimiters.
+Where a geometric diagram would aid understanding (e.g. triangles, coordinate axes, vector grids, angle labels), generate a clear ASCII art diagram inside a fenced code block (``` ```).
 Output exactly this markdown format:
 
 ---
@@ -94,6 +95,8 @@ RULES:
 4. Never duplicate existing content.
 5. Keep the same markdown format.
 6. Write any added content in {language}.
+7. Format all mathematical expressions using KaTeX notation: use $...$ for inline math and $$...$$ on its own line for block/display equations. Do not use [ ] or \\[ \\] delimiters.
+8. Where a geometric diagram would aid understanding (e.g. triangles, coordinate axes, vector grids, angle labels), generate a clear ASCII art diagram inside a fenced code block (``` ```).
 
 <<<EXISTING_SUMMARY>>>
 {safe_existing}
