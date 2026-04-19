@@ -126,6 +126,8 @@ with st.sidebar:
                         text = "\n\n".join(chunks)
                         generate_summary(module_to_summarise, text, append=append_existing)
                         st.success(f"✅ Summary saved for '{module_to_summarise}'")
+                        time.sleep(2)
+                        st.rerun()
                 except ValueError as e:
                     st.error(f"❌ {e}")
                 except Exception:
