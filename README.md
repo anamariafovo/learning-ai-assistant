@@ -51,8 +51,8 @@ rag_app/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/learning-ai-assistant-dev.git
-cd learning-ai-assistant-dev
+git clone https://github.com/anamariafovo/learning-ai-assistant.git
+cd learning-ai-assistant
 ```
 
 ### 2. Create and activate a virtual environment
@@ -89,7 +89,7 @@ OPENAI_API_KEY=sk-proj-your-key-here
 ### Start the assistant
 
 ```bash
-python -m streamlit run rag_app/app.py
+python3 -m streamlit run rag_app/app.py
 ```
 
 Your browser will open at `http://localhost:8501`.
@@ -101,7 +101,7 @@ Your browser will open at `http://localhost:8501`.
 From the **sidebar**:
 
 1. Upload a `.txt` transcript or `.pdf` file
-2. Enter a module name (e.g. `module1_intro`)
+2. Enter a module name (e.g. `module1_databases`)
 3. Click **💾 Ingest** to add to the vector database
 4. Click **📝 Summarise** to generate a structured summary
 
