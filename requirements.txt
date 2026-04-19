@@ -1,4 +1,5 @@
-openai
-chromadb
-python-dotenv
 streamlit
+chromadb
+openai
+pypdf
+python-dotenv
