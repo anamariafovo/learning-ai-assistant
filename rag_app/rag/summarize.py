@@ -56,7 +56,7 @@ A bullet list of the most important concepts introduced, with a one-line explana
 
 ## 📖 Detailed Notes
 Break the content into logical sections with subheadings. For each section:
-- Explain the topic clearly
+- Explain the topic clearly and as much as possible in simple terms
 - Include any definitions, formulas or examples mentioned
 - Preserve technical terminology exactly as used
 
