@@ -113,6 +113,13 @@ with st.sidebar:
     if loaded_modules:
         module_to_summarise = st.selectbox("Select module", loaded_modules, key="summarise_module_select")
         append_existing = st.checkbox("Append to existing summary", value=True, key="summarise_append")
+        summary_language = st.selectbox(
+            "Summary language",
+            ["English", "Romanian", "French", "German", "Spanish", "Italian", "Portuguese", "Dutch", "Polish", "Other"],
+            key="summarise_language",
+        )
+        if summary_language == "Other":
+            summary_language = st.text_input("Enter language", key="summarise_language_custom").strip() or "English"
         if st.button("Summarise Module", use_container_width=True):
             with st.spinner("Summarising..."):
                 try:
@@ -121,7 +128,7 @@ with st.sidebar:
                         st.error("No chunks found for this module.")
                     else:
                         text = "\n\n".join(chunks)
-                        generate_summary(module_to_summarise, text, append=append_existing)
+                        generate_summary(module_to_summarise, text, append=append_existing, language=summary_language)
                         st.success(f"✅ Summary saved for '{module_to_summarise}'")
                         time.sleep(2)
                         st.rerun()
