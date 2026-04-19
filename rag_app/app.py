@@ -64,8 +64,8 @@ with st.sidebar:
     st.markdown("### Upload Module Content")
 
     _uk = st.session_state.upload_key
-    txt_file = st.file_uploader("Transcript (.txt)", type=["txt"], key=f"txt_{_uk}")
-    pdf_file = st.file_uploader("PDF", type=["pdf"], key=f"pdf_{_uk}")
+    txt_files = st.file_uploader("Transcript (.txt)", type=["txt"], key=f"txt_{_uk}", accept_multiple_files=True)
+    pdf_files = st.file_uploader("PDFs", type=["pdf"], key=f"pdf_{_uk}", accept_multiple_files=True)
 
     existing_modules = get_all_modules()
     selected_module = st.selectbox(
@@ -82,25 +82,28 @@ with st.sidebar:
     ingest_btn = st.button("Save module content", use_container_width=True)
 
     if ingest_btn:
-        uploaded = txt_file or pdf_file
-        if not uploaded:
-            st.error("Please upload a file.")
+        all_files = list(txt_files or []) + list(pdf_files or [])
+        if not all_files:
+            st.error("Please upload at least one file.")
         elif not effective_module:
             st.error("Please enter or select a module name.")
         else:
             with st.spinner("Processing..."):
                 try:
-                    path = save_uploaded_file(uploaded)
-                    text = load_file(path)
-                    chunks = chunk_text(text)
-                    n = ingest_chunks(chunks, effective_module, uploaded.name)
-                    st.success(f"✅ Ingested {n} chunks into '{effective_module}'")
+                    total_chunks = 0
+                    for uploaded in all_files:
+                        path = save_uploaded_file(uploaded)
+                        text = load_file(path)
+                        chunks = chunk_text(text)
+                        n = ingest_chunks(chunks, effective_module, uploaded.name)
+                        total_chunks += n
+                    st.success(f"✅ Ingested {total_chunks} chunks into '{effective_module}'")
                     time.sleep(2)
                     st.session_state.upload_key += 1
                     st.rerun()
                 except ValueError as e:
                     st.error(f"❌ {e}")
-                except Exception as e:
+                except Exception:
                     logger.exception("Error during file processing")
                     st.error("❌ An error occurred while processing the file. Please try again.")
 

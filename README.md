@@ -100,14 +100,35 @@ Your browser will open at `http://localhost:8501`.
 
 From the **sidebar**:
 
-1. Upload a `.txt` transcript or `.pdf` file
-2. Enter a module name (e.g. `module1_databases`)
-3. Click **💾 Ingest** to add to the vector database
-4. Click **📝 Summarise** to generate a structured summary
+1. Upload one or more `.txt` transcripts and/or PDF files
+2. Enter a module name (e.g. `module1_databases`) or select an existing one
+3. Click **Save module content** to add to the vector database
+4. Click **Summarise Module** to generate a structured summary
 
-> 💡 Check **"Append to existing summary"** to merge new content into an existing summary without duplication.
+> 💡 **"Append to existing summary"** is on by default — the LLM merges new content into the existing summary without duplicating anything already covered.
 
 **Naming convention:** `moduleN_shortname` (lowercase, underscores only)
+
+---
+
+### Adding multiple files to the same module
+
+You can build up a module from several files, either all at once or incrementally.
+
+**Option A — Upload all files at once**
+
+1. Select all the files you want (e.g. one `.txt` transcript and several PDFs) in the upload widgets
+2. Select or type the module name
+3. Click **Save module content** — all files are chunked and stored together under that module
+4. Click **Summarise Module** to generate one combined summary
+
+**Option B — Add files incrementally (after an initial ingest + summary already exists)**
+
+1. Upload the new file(s) you want to add
+2. Select the **existing** module from the "Select existing module" dropdown
+3. Click **Save module content** — the new chunks are appended to the module in the database
+4. Make sure **"Append to existing summary"** is checked
+5. Click **Summarise Module** — the LLM reads the current summary alongside all stored chunks (old + new) and merges only the new material in, without repeating what is already there
 
 ---
 
