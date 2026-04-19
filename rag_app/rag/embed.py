@@ -92,3 +92,14 @@ def get_all_modules() -> list[str]:
         return sorted(set(m["module"] for m in result.get("metadatas", [])))
     except Exception:
         return []
+
+
+def delete_module(module_name: str) -> int:
+    """Delete all chunks for a module from ChromaDB. Returns number of chunks deleted."""
+    _validate_module_name(module_name)
+    collection = get_collection()
+    result = collection.get(where={"module": module_name}, include=[])
+    ids = result.get("ids", [])
+    if ids:
+        collection.delete(ids=ids)
+    return len(ids)

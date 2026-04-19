@@ -11,9 +11,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from rag.ingest import save_uploaded_file, load_file, chunk_text
-from rag.embed import ingest_chunks, get_all_modules, get_module_chunks
+from rag.embed import ingest_chunks, get_all_modules, get_module_chunks, delete_module
 from rag.chat import ask
 from rag.summarize import generate_summary, list_summaries, read_summary
+import shutil
 
 DEBUG_ENABLED = os.getenv("APP_DEBUG", "false").lower() == "true"
 MAX_CHAT_HISTORY = 100
@@ -139,6 +140,42 @@ with st.sidebar:
                     st.error("❌ An error occurred while summarising. Please try again.")
     else:
         st.caption("No modules loaded yet.")
+
+    st.markdown("---")
+    st.markdown("### Delete Module")
+    all_modules_for_delete = get_all_modules()
+    if all_modules_for_delete:
+        module_to_delete = st.selectbox("Select module to delete", all_modules_for_delete, key="delete_module_select")
+        if "confirm_delete" not in st.session_state:
+            st.session_state.confirm_delete = False
+        if not st.session_state.confirm_delete:
+            if st.button("🗑️ Delete module", use_container_width=True):
+                st.session_state.confirm_delete = True
+                st.rerun()
+        else:
+            st.warning(f"Delete **{module_to_delete}** and its summary? This cannot be undone.")
+            if st.button("Yes, delete", use_container_width=True):
+                try:
+                    n = delete_module(module_to_delete)
+                    summary_dir = os.path.join(
+                        os.path.dirname(__file__), "summaries", module_to_delete
+                    )
+                    if os.path.isdir(summary_dir):
+                        shutil.rmtree(summary_dir)
+                    if st.session_state.viewing_summary == module_to_delete:
+                        st.session_state.viewing_summary = None
+                    st.session_state.confirm_delete = False
+                    st.success(f"✅ Deleted '{module_to_delete}' ({n} chunks)")
+                    time.sleep(2)
+                    st.rerun()
+                except Exception:
+                    logger.exception("Error deleting module")
+                    st.error("❌ An error occurred while deleting. Please try again.")
+            if st.button("Cancel", use_container_width=True):
+                st.session_state.confirm_delete = False
+                st.rerun()
+    else:
+        st.caption("No modules to delete.")
 
     st.markdown("---")
     st.markdown("### Chat Settings")
