@@ -67,43 +67,37 @@ with st.sidebar:
     txt_file = st.file_uploader("Transcript (.txt)", type=["txt"], key=f"txt_{_uk}")
     pdf_file = st.file_uploader("PDF", type=["pdf"], key=f"pdf_{_uk}")
 
-    module_name = st.text_input("Add module name (e.g. module1_databases)", key=f"module_name_{_uk}")
+    existing_modules = get_all_modules()
+    selected_module = st.selectbox(
+        "Select existing module",
+        options=["— new module —"] + existing_modules,
+        key=f"module_select_{_uk}",
+    )
+    module_name = st.text_input("Or enter new module name (e.g. module1_databases)", key=f"module_name_{_uk}")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        ingest_btn = st.button("Ingest", use_container_width=True)
-    with col2:
-        summary_btn = st.button("Summarise", use_container_width=True)
+    effective_module = module_name.strip() if module_name.strip() else (
+        selected_module if selected_module != "— new module —" else ""
+    )
 
-    append_mode = st.checkbox("Append to existing summary", value=True)
+    ingest_btn = st.button("Save module content", use_container_width=True)
 
-    if ingest_btn or summary_btn:
+    if ingest_btn:
         uploaded = txt_file or pdf_file
         if not uploaded:
             st.error("Please upload a file.")
-        elif not module_name.strip():
-            st.error("Please enter a module name.")
+        elif not effective_module:
+            st.error("Please enter or select a module name.")
         else:
             with st.spinner("Processing..."):
                 try:
                     path = save_uploaded_file(uploaded)
                     text = load_file(path)
                     chunks = chunk_text(text)
-
-                    if ingest_btn:
-                        n = ingest_chunks(chunks, module_name.strip(), uploaded.name)
-                        st.success(f"✅ Ingested {n} chunks into '{module_name}'")
-                        time.sleep(2)
-                        st.session_state.upload_key += 1
-                        st.rerun()
-
-                    if summary_btn:
-                        generate_summary(module_name.strip(), text, append=append_mode)
-                        st.success(f"✅ Summary saved for '{module_name}'")
-                        time.sleep(2)
-                        st.session_state.upload_key += 1
-                        st.rerun()
-
+                    n = ingest_chunks(chunks, effective_module, uploaded.name)
+                    st.success(f"✅ Ingested {n} chunks into '{effective_module}'")
+                    time.sleep(2)
+                    st.session_state.upload_key += 1
+                    st.rerun()
                 except ValueError as e:
                     st.error(f"❌ {e}")
                 except Exception as e:
