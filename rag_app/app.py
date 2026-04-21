@@ -49,12 +49,14 @@ with st.sidebar:
             if st.button(f"📄 {s}", key=f"view_{s}", use_container_width=True):
                 st.session_state.viewing_summary = s
                 st.rerun()
-        if st.session_state.viewing_summary:
-            if st.button("✖ Close", use_container_width=True):
-                st.session_state.viewing_summary = None
-                st.rerun()
     else:
         st.caption("No summaries yet.")
+
+    st.markdown("---")
+    st.markdown("### Chat")
+    if st.button("💬 Go to Chat", use_container_width=True):
+        st.session_state.viewing_summary = None
+        st.rerun()
 
     st.markdown("---")
     st.markdown("### Modules")
